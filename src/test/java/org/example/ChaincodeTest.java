@@ -34,7 +34,7 @@ public class ChaincodeTest {
         when(stub.getParameters()).thenReturn(new ArrayList<String>());
         Response res = cc.init(stub);
         assertEquals(Status.SUCCESS, res.getStatus());
-        when(stub.getFunction()).thenReturn("invokeFunc");
+        when(stub.getFunction()).thenReturn("CreateAsset");
         when(stub.getParameters()).thenReturn(new ArrayList<String>());
         res = cc.invoke(stub);
         assertEquals(Status.SUCCESS, res.getStatus());
