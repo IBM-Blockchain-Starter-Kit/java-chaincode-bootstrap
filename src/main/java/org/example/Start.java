@@ -4,9 +4,12 @@
 
 package org.example;
 
-public class Start {
+public final class Start {
 
-    public static void main(String[] args) {
+    private Start() {
+    }
+
+    public static void main(final String[] args) {
         new Chaincode().start(args);
     }
 
