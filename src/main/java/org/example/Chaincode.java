@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.owlike.genson.Genson;
+
 import org.hyperledger.fabric.shim.ChaincodeBase;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 
@@ -68,29 +72,89 @@ public class Chaincode extends ChaincodeBase {
             }
                 
         } catch (Throwable e) {
-            System.out.printf(e.toString());
+            System.out.println(e.toString());
             return newErrorResponse(e);
         }
     }
     
     private Response create(ChaincodeStub stub, List<String> params) {
-        System.out.printf("CREATE");
-        return newSuccessResponse("CREATE");
+        System.out.println("CREATE");
+        String key = params.get(0);
+        String value = params.get(1);
+        
+        String assetState = stub.getStringState(key);
+        if (!assetState.isEmpty()) {
+            String errorMessage = String.format("Asset %s already exists", key);
+            System.out.println(errorMessage);
+            return newErrorResponse(errorMessage);
+        }
+        
+        Genson genson = new Genson();
+        Asset asset = new Asset(value);
+        assetState = genson.serialize(asset);
+        stub.putStringState(key, assetState);
+
+        String successMessage = String.format("Created asset %s", key);
+        return newSuccessResponse(successMessage, assetState.getBytes(UTF_8));
     }
 
     private Response read(ChaincodeStub stub, List<String> params) {
-        System.out.printf("READ");
-        return newSuccessResponse("READ");
+        System.out.println("READ");
+        String key = params.get(0);
+        
+        String assetState = stub.getStringState(key);
+
+        if (assetState.isEmpty()) {
+            String errorMessage = String.format("Asset %s does not exist", key);
+            System.out.println(errorMessage);
+            return newErrorResponse(errorMessage);
+        }
+        
+        Genson genson = new Genson();
+        Asset asset = genson.deserialize(assetState, Asset.class);
+        
+        String successMessage = String.format("Read asset %s", key);
+        return newSuccessResponse(successMessage, genson.serialize(asset).getBytes(UTF_8));
     }
 
     private Response update(ChaincodeStub stub, List<String> params) {
-        System.out.printf("UPDATE");
-        return newSuccessResponse("UPDATE");
+        System.out.println("UPDATE");
+        String key = params.get(0);
+        String value = params.get(1);
+        
+        String assetState = stub.getStringState(key);
+
+        if (assetState.isEmpty()) {
+            String errorMessage = String.format("Asset %s does not exist", key);
+            System.out.println(errorMessage);
+            return newErrorResponse(errorMessage);
+        }
+        
+        Genson genson = new Genson();
+        Asset asset = new Asset(value);
+        assetState = genson.serialize(asset);
+        stub.putStringState(key, assetState);
+        
+        String successMessage = String.format("Updated asset %s", key);
+        return newSuccessResponse(successMessage, genson.serialize(asset).getBytes(UTF_8));
     }
 
     private Response delete(ChaincodeStub stub, List<String> params) {
-        System.out.printf("DELETE");
-        return newSuccessResponse("DELETE");
+        System.out.println("DELETE");
+        String key = params.get(0);
+        
+        String assetState = stub.getStringState(key);
+
+        if (assetState.isEmpty()) {
+            String errorMessage = String.format("Asset %s does not exist", key);
+            System.out.println(errorMessage);
+            return newErrorResponse(errorMessage);
+        }
+        
+        stub.delState(key);
+        
+        String successMessage = String.format("Deleted asset %s", key);
+        return newSuccessResponse(successMessage);
     }
 
 }
