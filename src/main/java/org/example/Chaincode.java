@@ -6,9 +6,7 @@ package org.example;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.hyperledger.fabric.shim.ChaincodeBase;
 import org.hyperledger.fabric.shim.ChaincodeStub;
@@ -16,31 +14,6 @@ import org.hyperledger.fabric.shim.ChaincodeStub;
 import com.owlike.genson.Genson;
 
 public final class Chaincode extends ChaincodeBase {
-
-    private enum Transaction {
-        CREATE_ASSET("CreateAsset"), READ_ASSET("ReadAsset"), UPDATE_ASSET("UpdateAsset"), DELETE_ASSET("DeleteAsset");
-
-        private final String name;
-
-        private static final Map<String, Transaction> BY_NAME = new HashMap<String, Transaction>();
-
-        static {
-            for (Transaction type : Transaction.values()) {
-                BY_NAME.put(type.name, type);
-            }
-        }
-
-        Transaction(final String name) {
-            this.name = name;
-        }
-
-        public static Transaction fromName(final String name) {
-            if (BY_NAME.containsKey(name)) {
-                return BY_NAME.get(name);
-            }
-            throw new IllegalArgumentException("no such transaction: " + name);
-        }
-    }
 
     @Override
     public Response init(final ChaincodeStub stub) {
@@ -57,20 +30,20 @@ public final class Chaincode extends ChaincodeBase {
             List<String> params = stub.getParameters();
             System.out.printf("invoke() %s %s\n", fcn, params.toArray());
 
-            Transaction txn = Transaction.fromName(fcn);
-            switch (txn) {
-            case CREATE_ASSET:
-                return create(stub, params);
-            case READ_ASSET:
-                return read(stub, params);
-            case UPDATE_ASSET:
-                return update(stub, params);
-            case DELETE_ASSET:
-                return delete(stub, params);
-            default:
-                return newErrorResponse();
+            switch (fcn) {
+                case "CreateAsset":
+                    return create(stub, params);
+                case "ReadAsset":
+                    return read(stub, params);
+                case "UpdateAsset":
+                    return update(stub, params);
+                case "DeleteAsset":
+                    return delete(stub, params);
+                default:
+                    String errorMessage = String.format("Transaction %s does not exist", fcn);
+                    System.out.println(errorMessage);
+                    return newErrorResponse(errorMessage);
             }
-
         } catch (Throwable e) {
             System.out.println(e.toString());
             return newErrorResponse(e);
