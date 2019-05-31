@@ -64,6 +64,8 @@ jacocoTestCoverageVerification {
             }
         }
     }
+    
+    finalizedBy jacocoTestReport
 }
 
 test {
@@ -73,4 +75,4 @@ test {
     }
 }
 
-check.dependsOn jacocoTestReport, jacocoTestCoverageVerification
+check.dependsOn jacocoTestCoverageVerification
